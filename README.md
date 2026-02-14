@@ -1,8 +1,3 @@
-Here’s a **clean, powerful README description rewritten as yours** — more original, more eye-catching, and realistic.
-
-You can directly paste this into GitHub README.
-
----
 
 # ⚡ Jujutsu Kaisen: Cursed Technique Visualizer
 
