@@ -477,25 +477,30 @@ function stopSlashBarrage(){
 // --- FIXED UPDATE STATE ---
 function updateState(tech) {
     if (currentTech === tech) {
-        // CONTINUOUS EFFECT: If still in 'slash' mode, keep creating slashes
+        // still in 'slash' mode → keep creating slashes
         if(tech === 'slash') createSlashes();
         return;
     }
     
+    // --- RESET OLD TECH EFFECTS ---
+    if(currentTech === 'slash') {
+        stopSlashBarrage();             // stop spawning slash meshes
+        bloomPass.strength = 1.0;       // reset bloom
+        glowColor = '#00ffff';          // reset glow color
+    }
+
     currentTech = tech;
     const nameEl = document.getElementById('technique-name');
     shakeIntensity = tech !== 'neutral' ? 0.4 : 0;
 
-if (tech === 'slash') {
-    glowColor = '#ff2222';
-    nameEl.innerText = "Sukuna: Dismantle Barrage";
-    bloomPass.strength = 4.5;
+    if (tech === 'slash') {
+        glowColor = '#ff2222';
+        nameEl.innerText = "Sukuna: Dismantle Barrage";
+        bloomPass.strength = 4.5;
 
-    playVoice("slashVoice");
-
-    startSlashBarrage();
-}
-
+        playVoice("slashVoice");
+        startSlashBarrage();
+    } 
     else if (tech === 'shrine') { 
         glowColor = '#ff0000'; 
         nameEl.innerText = "Domain Expansion: Malevolent Shrine"; 
@@ -525,21 +530,19 @@ if (tech === 'slash') {
         nameEl.innerText = "Neutral State"; 
         bloomPass.strength = 1.0; 
         stopSlashBarrage();
-
     }
-    
 
     // Update Particle Targets
     for (let i = 0; i < COUNT; i++) {
         let p;
-        if (tech === 'neutral' || tech === 'slash') { // Particles stay neutral during slashes
-            if (i < COUNT * 0.05) {
-                const r = 15 + Math.random() * 20;
-                const t = Math.random() * 6.28;
-                const ph = Math.random() * 3.14;
-                p = { x: r * Math.sin(ph) * Math.cos(t), y: r * Math.sin(ph) * Math.sin(t), z: r * Math.cos(ph), r: 0.1, g: 0.1, b: 0.2, s: 0.4 };
-            } else p = { x: 0, y: 0, z: 0, r: 0, g: 0, b: 0, s: 0 };
+        if (tech === 'neutral') { 
+            // reset all particles immediately
+            p = { x: 0, y: 0, z: 0, r: 0, g: 0, b: 0, s: 0 };
         } 
+        else if (tech === 'slash') { 
+            // keep neutral targets for slash; actual slash effect uses meshes
+            p = { x: 0, y: 0, z: 0, r: 0, g: 0, b: 0, s: 0 };
+        }
         else if (tech === 'red') p = getRed(i);
         else if (tech === 'void') p = getVoid(i);
         else if (tech === 'purple') p = getPurple(i);
@@ -554,6 +557,7 @@ if (tech === 'slash') {
         targetSizes[i] = p.s;
     }
 }
+
 
     const cameraUtils = new Camera(videoElement, {
         onFrame: async () => {
