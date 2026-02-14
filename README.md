@@ -1,10 +1,11 @@
 
+
 # ⚡ Jujutsu Kaisen: Cursed Technique Visualizer
 
-A real-time **gesture-controlled cursed technique visualizer** inspired by *Jujutsu Kaisen*.
+A **real-time gesture-controlled cursed technique visualizer** inspired by *Jujutsu Kaisen*.
 This project uses **hand tracking + particle simulation** to recreate Gojo and Sukuna’s techniques directly in the browser using your webcam.
 
-Built using **MediaPipe + Three.js**, this runs fully on the web — no installation needed.
+Built with **MediaPipe + Three.js**, it runs fully in the browser — no installation needed.
 
 ![Demo GIF](https://github.com/user-attachments/assets/8ad2b871-02c0-4b97-95f3-34682e745be0)
 
@@ -12,95 +13,99 @@ Built using **MediaPipe + Three.js**, this runs fully on the web — no installa
 
 # 🔥 Features
 
-All techniques are rendered using real-time particle simulations and gesture detection.
+All techniques are rendered using **real-time particle simulations** and **gesture detection**.
 
 ## 🟣 Secret Technique: Hollow Purple
 
-**Visual:** Chaotic singularity combining attraction + repulsion
-**Gesture:** Pinch (thumb + index finger)
+* **Visual:** Chaotic singularity combining attraction + repulsion
+* **Gesture:** Pinch (thumb + index finger)
 
 ---
 
 ## 🔵 Domain Expansion: Infinite Void (Gojo)
 
-**Visual:** Cosmic infinite space with energy distortion and void aura
-**Gesture:** Two-finger cross / void gesture
-**Audio:** Gojo domain voice trigger
+* **Visual:** Cosmic infinite space with energy distortion and void aura
+* **Gesture:** Two-finger cross / void gesture
+* **Audio:** Gojo domain voice triggers
 
 ---
 
 ## 🔴 Cursed Technique Reversal: Red
 
-**Visual:** Violent repulsive cursed energy sphere
-**Gesture:** Index finger up
-**Audio:** Reversal Red activation sound
+* **Visual:** Violent repulsive cursed energy sphere
+* **Gesture:** Index finger up
+* **Audio:** Reversal Red activation sound
 
 ---
 
 ## 🩸 Domain Expansion: Malevolent Shrine (Sukuna)
 
-**Visual:** Dark cursed aura with demonic shrine energy
-**Gesture:** Open palm / shrine gesture
-**Audio:** Sukuna domain voice trigger
+* **Visual:** Dark cursed aura with demonic shrine energy
+* **Gesture:** Open palm / shrine gesture
+* **Audio:** Sukuna domain voice triggers
+
+---
+
+## ⚔️ Sukuna Dismantle Barrage (New!)
+
+* **Visual:** Continuous red slash barrage
+* **Gesture:** Middle + ring fingers up
+* **Audio:** Dismantle activation sound
+* **Fix:** Slash effect now stops instantly when switching gestures — no lingering red screen
 
 ---
 
 # 🎮 What Makes This Special
 
-* Real-time hand tracking using webcam
+* Real-time **hand tracking** using webcam
 * No controller or keyboard needed
-* Fully browser-based experience
-* Works on laptop + mobile browser
-* Anime-style UI and effects
-* Gesture → instant cursed technique activation
-* Separate sound effects for each technique (no overlap)
+* Fully **browser-based experience**
+* Works on **laptop + mobile browser**
+* Anime-style UI and particle effects
+* **Instant gesture → cursed technique activation**
+* Separate sound effects for each technique, no overlapping
 
 ---
 
 # 🖥️ Tech Stack
 
-* Three.js → particle rendering & visuals
-* MediaPipe Hands → gesture detection
-* WebGL → real-time graphics
-* HTML/CSS/JS → core frontend
-* Web Audio → domain voice effects
+* **Three.js** → particle rendering & visuals
+* **MediaPipe Hands** → gesture detection
+* **WebGL** → real-time graphics
+* **HTML/CSS/JS** → core frontend
+* **Web Audio API** → domain voice effects
 
 ---
 
 # 🚀 Live Demo
 
-(After Vercel deploy, paste your link here)
+Open in browser, allow camera, perform gestures, and activate domains.
 
 ```
-[https://your-vercel-link.vercel.app](https://jujutsu-kaisen-indol.vercel.app/)
+[https://jujutsu-kaisen-indol.vercel.app](https://jujutsu-kaisen-indol.vercel.app)
 ```
-
-Open → allow camera → perform gestures → activate domains.
 
 ---
 
 # ⚙️ Run Locally
 
-Clone repo:
+Clone the repo:
 
 ```bash
 git clone https://github.com/HeyitsSup03/Jujutsu-Kaisen.git
 cd Jujutsu-Kaisen
 ```
 
-Run using VS Code Live Server
-or simply open `index.html` in browser.
+Open `index.html` in your browser **or** use VS Code Live Server.
 
-Allow camera permission when prompted.
+Allow camera permissions when prompted.
 
 ---
 
 # 🧠 Inspiration
 
-Inspired by the cursed techniques and domain expansions from
-**Jujutsu Kaisen**.
-
-Built as a real-time interactive anime experience using computer vision and WebGL.
+Inspired by the **cursed techniques and domain expansions** from *Jujutsu Kaisen*.
+Built as a **real-time interactive anime experience** using computer vision and WebGL.
 
 ---
 
@@ -110,10 +115,6 @@ Built as a real-time interactive anime experience using computer vision and WebG
 
 ---
 
-
-```
-⭐ If this blew your mind, star the repo
-```
+⭐ If this blew your mind, **star the repo**!
 
 ---
-
