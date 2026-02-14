@@ -72,7 +72,7 @@ All techniques are rendered using real-time particle simulations and gesture det
 (After Vercel deploy, paste your link here)
 
 ```
-https://your-vercel-link.vercel.app
+[https://your-vercel-link.vercel.app](https://jujutsu-kaisen-indol.vercel.app/)
 ```
 
 Open → allow camera → perform gestures → activate domains.
@@ -110,9 +110,6 @@ Built as a real-time interactive anime experience using computer vision and WebG
 
 ---
 
-# 🔥 Optional (add after deploy)
-
-If you want this to look insane on GitHub, add at top:
 
 ```
 ⭐ If this blew your mind, star the repo
