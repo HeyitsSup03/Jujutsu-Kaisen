@@ -94,6 +94,7 @@
 <audio id="sukunaVoice" src="assets/sukuna-domain.mp3" preload="auto"></audio>
 <audio id="purpleVoice" src="assets/hollow-purple.mp3" preload="auto"></audio>
 <audio id="redVoice" src="assets/reversal-red.mp3" preload="auto"></audio>
+<audio id="slashVoice" src="assets/dismantle.mp3" preload="auto"></audio>
 
 <script type="module">
     import * as THREE from 'three';
@@ -103,12 +104,14 @@
 function playVoice(id){
 
     // list ALL sounds here
-    const allVoices = [
-        "gojoVoice",
-        "sukunaVoice",
-        "purpleVoice",
-        "redVoice"
-    ];
+const allVoices = [
+    "gojoVoice",
+    "sukunaVoice",
+    "purpleVoice",
+    "redVoice",
+    "slashVoice"
+];
+
 
     // stop everything first
     allVoices.forEach(v=>{
@@ -207,69 +210,350 @@ function playVoice(id){
     }
 
     // Hand Tracking
-    let currentTech = 'neutral';
-    let shakeIntensity = 0;
+  // Hand Tracking
+let currentTech = 'neutral';
+
+// ===== STABILITY + COOLDOWN SYSTEM =====
+let lastGesture = "neutral";
+let gestureStartTime = 0;
+let cooldown = false;
+
+const STABLE_TIME = 200;      // gesture must hold 0.5s
+const COOLDOWN_TIME = 1200;   // 1.2s between triggers
+
+let shakeIntensity = 0;
+
+
+// --- NEW PRO DETECTION SYSTEM ---
+
+
     const videoElement = document.querySelector('.input_video');
     const canvasElement = document.getElementById('output_canvas');
     const canvasCtx = canvasElement.getContext('2d');
     let glowColor = '#00ffff';
 
     const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-    hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.7 });
+   hands.setOptions({
+    maxNumHands: 2,
+    modelComplexity: 1,
+    minDetectionConfidence: 0.7,
+    minTrackingConfidence: 0.7
+});
 
-    hands.onResults((results) => {
-        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-        let detected = 'neutral';
 
-        if (results.multiHandLandmarks) {
-            results.multiHandLandmarks.forEach((lm) => {
-                drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, {color: glowColor, lineWidth: 5});
-                drawLandmarks(canvasCtx, lm, {color: '#fff', lineWidth: 1, radius: 2});
+hands.onResults((results) => {
+    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+    let detected = 'neutral';
+    // ===== TWO HAND DOMAIN CHECK =====
+// ===== SUKUNA DOMAIN (FIXED PROPER) =====
+// ===== SUKUNA DOMAIN — ULTRA STABLE =====
+if(results.multiHandLandmarks && results.multiHandLandmarks.length === 2){
 
-                const isUp = (t, p) => lm[t].y < lm[p].y;
-                const pinch = Math.hypot(lm[8].x - lm[4].x, lm[8].y - lm[4].y);
-                
-                if (pinch < 0.04) detected = 'purple';
-                else if (isUp(8,6) && isUp(12,10) && isUp(16,14) && isUp(20,18)) detected = 'shrine';
-                else if (isUp(8,6) && isUp(12,10) && !isUp(16,14)) detected = 'void';
-                else if (isUp(8,6) && !isUp(12,10)) detected = 'red';
-            });
-        }
+const h1 = results.multiHandLandmarks[0];
+const h2 = results.multiHandLandmarks[1];
+
+// distance between palms (center of palm landmark 9)
+const dx = Math.abs(h1[9].x - h2[9].x);
+const dy = Math.abs(h1[9].y - h2[9].y);
+
+// palms must be close
+const palmsClose = dx < 0.25 && dy < 0.25;
+
+// both hands near screen center
+const center1 = Math.abs(h1[9].x - 0.5) < 0.35;
+const center2 = Math.abs(h2[9].x - 0.5) < 0.35;
+
+// all fingers straight check
+function allFingersUp(hand){
+return (
+hand[8].y < hand[6].y &&
+hand[12].y < hand[10].y &&
+hand[16].y < hand[14].y &&
+hand[20].y < hand[18].y
+);
+}
+
+if(palmsClose && center1 && center2 && allFingersUp(h1) && allFingersUp(h2)){
+    detected = "shrine";
+}
+}
+
+
+
+
+    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+     results.multiHandLandmarks.forEach((lm) => {
+
+if(detected === "shrine") return;
+
+// rest of gesture logic
+// ===== FINGER STATE =====
+const indexUp = lm[8].y < lm[6].y - 0.02;
+const middleUp = lm[12].y < lm[10].y - 0.02;
+const ringUp = lm[16].y < lm[14].y - 0.02;
+const pinkyUp = lm[20].y < lm[18].y - 0.02;
+const thumbUp = lm[4].x < lm[3].x; // thumb sideways detection better
+
+// Count fingers
+const upCount =
+(indexUp?1:0)+
+(middleUp?1:0)+
+(ringUp?1:0)+
+(pinkyUp?1:0)+
+(thumbUp?1:0);
+
+// Distances
+const pinchDist = Math.hypot(lm[8].x-lm[4].x, lm[8].y-lm[4].y);
+const middleToPinch = Math.hypot(lm[12].x-lm[4].x, lm[12].y-lm[4].y);
+
+// ===== SLASH FORWARD CHECK (FIXED) =====
+// detects finger gun pointing toward camera
+const forward =
+lm[8].z < -0.05 &&
+lm[12].z < -0.05;
+
+            
+            drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, {color: glowColor, lineWidth: 5});
+            drawLandmarks(canvasCtx, lm, {color: '#fff', lineWidth: 1, radius: 2});
+
+            
+
+         // ===== STRICT GESTURE DETECTION =====
+
+// ---------- 1️⃣ HOLLOW PURPLE (priority 2) ----------
+if(
+pinchDist < 0.07 &&
+middleToPinch < 0.09 &&
+!ringUp && !pinkyUp
+)
+{
+    detected = "purple";
+}
+
+// ---------- 2️⃣ REVERSAL RED (priority 3) ----------
+else if(
+indexUp &&
+upCount === 1 &&
+!middleUp && !ringUp && !pinkyUp
+){
+    detected = "red";
+}
+// ---------- 3️⃣ SUKUNA DISMANTLE (middle + ring only PERFECT) ----------
+else if(
+middleUp && ringUp &&
+!indexUp && !pinkyUp &&
+upCount <= 3 &&
+
+// fingers must be vertical
+Math.abs(lm[12].x - lm[16].x) < 0.12 &&
+
+// hand must be center-ish (intentional gesture)
+Math.abs(lm[9].x - 0.5) < 0.35
+){
+    detected = "slash";
+}
+
+
+// ---------- 3️⃣ GOJO SIGN (priority 4) ----------
+else if(
+indexUp && middleUp &&
+!ringUp && !pinkyUp &&
+upCount <= 3 &&   // allow thumb slightly open
+Math.abs(lm[8].x - lm[12].x) < 0.08
+)
+{
+    detected = "void";
+}
+
+
+
+        });
+    }
+   // ===== STABILITY SYSTEM =====
+
+// if cooldown active → ignore everything
+if(cooldown) return;
+
+// new gesture started
+if(detected !== lastGesture){
+    lastGesture = detected;
+    gestureStartTime = Date.now();
+    return;
+}
+
+// gesture held stable long enough
+if(Date.now() - gestureStartTime > STABLE_TIME){
+
+    if(detected !== currentTech){
         updateState(detected);
+
+        // activate cooldown after trigger
+        cooldown = true;
+        setTimeout(()=>{
+            cooldown = false;
+        }, COOLDOWN_TIME);
+    }
+}
+
+});
+// --- IMPROVED SLASH ANIMATION ---
+// ===== ENDLESS SUKUNA BARRAGE SYSTEM =====
+let slashLoopActive = false;
+let slashSize = 10;
+
+function spawnSlash(){
+    const geo = new THREE.PlaneGeometry(slashSize, 2 + Math.random()*3);
+    const mat = new THREE.MeshBasicMaterial({
+        color: 0xff0000,
+        transparent: true,
+        opacity: 1,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending
     });
 
-    function updateState(tech) {
-        if(currentTech === tech) return;
-        currentTech = tech;
-        const nameEl = document.getElementById('technique-name');
-        shakeIntensity = tech !== 'neutral' ? 0.4 : 0;
+    const slash = new THREE.Mesh(geo, mat);
 
-        if(tech === 'shrine') { glowColor = '#ff0000'; nameEl.innerText = "Domain Expansion: Malevolent Shrine"; bloomPass.strength = 2.5; playVoice("sukunaVoice");
-}
-        else if(tech === 'purple') { glowColor = '#bb00ff'; nameEl.innerText = "Secret Technique: Hollow Purple"; bloomPass.strength = 4.0; playVoice("purpleVoice") }
-        else if(tech === 'void') { glowColor = '#00ffff'; nameEl.innerText = "Domain Expansion: Infinite Void"; bloomPass.strength = 2.0; playVoice("gojoVoice");
- }
-        else if(tech === 'red') { glowColor = '#ff3333'; nameEl.innerText = "Reverse Cursed Technique: Red"; bloomPass.strength = 2.5; playVoice("redVoice") }
-        else { glowColor = '#00ffff'; nameEl.innerText = "Neutral State"; bloomPass.strength = 1.0; }
+    // random screen position
+    slash.position.set(
+        (Math.random()-0.5)*120,
+        (Math.random()-0.5)*80,
+        (Math.random()-0.5)*40
+    );
 
-        for(let i=0; i<COUNT; i++) {
-            let p;
-            if(tech === 'neutral') {
-                if(i < COUNT * 0.05) {
-                    const r = 15 + Math.random()*20; const t = Math.random()*6.28; const ph = Math.random()*3.14;
-                    p = { x: r*Math.sin(ph)*Math.cos(t), y: r*Math.sin(ph)*Math.sin(t), z: r*Math.cos(ph), r: 0.1, g: 0.1, b: 0.2, s: 0.4 };
-                } else p = { x:0, y:0, z:0, r:0, g:0, b:0, s:0 };
-            }
-            else if(tech === 'red') p = getRed(i);
-            else if(tech === 'void') p = getVoid(i);
-            else if(tech === 'purple') p = getPurple(i);
-            else if(tech === 'shrine') p = getShrine(i);
-            
-            targetPositions[i*3] = p.x; targetPositions[i*3+1] = p.y; targetPositions[i*3+2] = p.z;
-            targetColors[i*3] = p.r; targetColors[i*3+1] = p.g; targetColors[i*3+2] = p.b;
-            targetSizes[i] = p.s;
+    slash.rotation.z = Math.random()*Math.PI;
+    scene.add(slash);
+
+    let life = 0;
+
+    function animate(){
+        life++;
+
+        // grow + move forward
+        slash.scale.y *= 1.15;
+        slash.scale.x *= 1.05;
+        slash.material.opacity *= 0.92;
+        slash.translateX(3);
+
+        if(life < 25){
+            requestAnimationFrame(animate);
+        } else {
+            scene.remove(slash);
+            slash.geometry.dispose();
+            slash.material.dispose();
         }
     }
+    animate();
+}
+
+
+// ===== CONTINUOUS BARRAGE LOOP =====
+function startSlashBarrage(){
+    if(slashLoopActive) return;
+
+    slashLoopActive = true;
+    slashSize = 20;
+
+    function loop(){
+        if(!slashLoopActive) return;
+
+        // spawn MANY per frame
+        for(let i=0;i<5;i++) spawnSlash();
+
+        // gradually increase size = screen takeover
+        slashSize += 2;
+        if(slashSize > 220) slashSize = 220;
+
+        requestAnimationFrame(loop);
+    }
+    loop();
+}
+
+function stopSlashBarrage(){
+    slashLoopActive = false;
+    slashSize = 10;
+}
+
+
+// --- FIXED UPDATE STATE ---
+function updateState(tech) {
+    if (currentTech === tech) {
+        // CONTINUOUS EFFECT: If still in 'slash' mode, keep creating slashes
+        if(tech === 'slash') createSlashes();
+        return;
+    }
+    
+    currentTech = tech;
+    const nameEl = document.getElementById('technique-name');
+    shakeIntensity = tech !== 'neutral' ? 0.4 : 0;
+
+if (tech === 'slash') {
+    glowColor = '#ff2222';
+    nameEl.innerText = "Sukuna: Dismantle Barrage";
+    bloomPass.strength = 4.5;
+
+    playVoice("slashVoice");
+
+    startSlashBarrage();
+}
+
+    else if (tech === 'shrine') { 
+        glowColor = '#ff0000'; 
+        nameEl.innerText = "Domain Expansion: Malevolent Shrine"; 
+        bloomPass.strength = 2.5; 
+        playVoice("sukunaVoice");
+    } 
+    else if (tech === 'purple') { 
+        glowColor = '#bb00ff'; 
+        nameEl.innerText = "Secret Technique: Hollow Purple"; 
+        bloomPass.strength = 4.0; 
+        playVoice("purpleVoice"); 
+    } 
+    else if (tech === 'void') { 
+        glowColor = '#00ffff'; 
+        nameEl.innerText = "Domain Expansion: Infinite Void"; 
+        bloomPass.strength = 2.0; 
+        playVoice("gojoVoice");
+    } 
+    else if (tech === 'red') { 
+        glowColor = '#ff3333'; 
+        nameEl.innerText = "Reverse Cursed Technique: Red"; 
+        bloomPass.strength = 2.5; 
+        playVoice("redVoice"); 
+    } 
+    else { 
+        glowColor = '#00ffff'; 
+        nameEl.innerText = "Neutral State"; 
+        bloomPass.strength = 1.0; 
+        stopSlashBarrage();
+
+    }
+    
+
+    // Update Particle Targets
+    for (let i = 0; i < COUNT; i++) {
+        let p;
+        if (tech === 'neutral' || tech === 'slash') { // Particles stay neutral during slashes
+            if (i < COUNT * 0.05) {
+                const r = 15 + Math.random() * 20;
+                const t = Math.random() * 6.28;
+                const ph = Math.random() * 3.14;
+                p = { x: r * Math.sin(ph) * Math.cos(t), y: r * Math.sin(ph) * Math.sin(t), z: r * Math.cos(ph), r: 0.1, g: 0.1, b: 0.2, s: 0.4 };
+            } else p = { x: 0, y: 0, z: 0, r: 0, g: 0, b: 0, s: 0 };
+        } 
+        else if (tech === 'red') p = getRed(i);
+        else if (tech === 'void') p = getVoid(i);
+        else if (tech === 'purple') p = getPurple(i);
+        else if (tech === 'shrine') p = getShrine(i);
+
+        targetPositions[i * 3] = p.x;
+        targetPositions[i * 3 + 1] = p.y;
+        targetPositions[i * 3 + 2] = p.z;
+        targetColors[i * 3] = p.r;
+        targetColors[i * 3 + 1] = p.g;
+        targetColors[i * 3 + 2] = p.b;
+        targetSizes[i] = p.s;
+    }
+}
 
     const cameraUtils = new Camera(videoElement, {
         onFrame: async () => {
